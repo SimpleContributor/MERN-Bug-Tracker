@@ -1,10 +1,15 @@
 const express = require('express');
 const connectDB = require('./config/db');
+const { check, validationResuls } = require('express-validator/check');
 
 const app = express();
 
 // Connect Database
 connectDB();
+
+// Init Body Parser Middleware
+// Allows us to get data from req.body
+app.use(express.json({ extended: false }));
 
 app.get('/', (req, res) => {
     res.send('Express API running.')
