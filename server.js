@@ -1,6 +1,6 @@
 const express = require('express');
 const connectDB = require('./config/db');
-const { check, validationResuls } = require('express-validator/check');
+const { check, validationResuls } = require('express-validator');
 
 const app = express();
 
@@ -24,5 +24,5 @@ app.use('/api/users', require('./routes/api/users'));
 const PORT = process.env.PORT || 5000;
 
 app.listen(PORT, () => {
-    console.log(`Server started on port ${PORT}`)
+    console.log(`...Server started on port ${PORT}...`)
 });
