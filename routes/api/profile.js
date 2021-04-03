@@ -11,8 +11,8 @@ const User = require('../../models/User');
 // @access  Private
 router.get('/me', auth, async (req, res) => {
     try {
-        // populate will add the _id from GET auth user (based on token from logging in) to the user value
-        // the profile will have two _ids, its own _id and the authenticated users _id
+        // populate will add the authenticated users name (from registering their account) to the
+        // user field in Profile
         const profile = await Profile.findOne({ user: req.user.id }).populate('user', ['name']);
 
         if (!profile) {
@@ -26,12 +26,13 @@ router.get('/me', auth, async (req, res) => {
     }
 });
 
+// status
 
 // @route   POST api/profile
 // @desc    Create/Update a user profile
 // @access  Private
 router.post('/', [ auth, [
-    check('status', 'Status is required').notEmpty()
+    check('availability', 'Availability is required').notEmpty()
 ]], async (req, res) => {
     const errors = validationResult(req);
     if(!errors.isEmpty()) {
@@ -40,14 +41,14 @@ router.post('/', [ auth, [
 
     const {
         projects,
-        status,
+        availability,
         githubusername
     } = req.body;
 
     // Build Profile Object
     const profileFields = {};
     profileFields.user = req.user.id;
-    if (status) profileFields.status = status;
+    if (availability) profileFields.availability = availability;
     if (githubusername) profileFields.githubusername = githubusername;
     if (projects) {
         profileFields.projects = projects.split(',').map(project => project.trim());
@@ -69,7 +70,6 @@ router.post('/', [ auth, [
 
         // Create Profile if one does not exist
         profile = new Profile(profileFields);
-
         await profile.save();
 
         res.json(profile);

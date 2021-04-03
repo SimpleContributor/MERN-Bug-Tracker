@@ -13,7 +13,7 @@ const User = require('../../models/User');
 router.get('/', (req, res) => res.send('User Route'));
 
 // @route  POST api/users
-// @desc   Register User
+// @desc   Register User to the website (name, email and password)
 // @access Public
 router.post('/', [
     check('name', 'Name is required...')
