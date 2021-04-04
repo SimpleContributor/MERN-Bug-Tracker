@@ -5,7 +5,6 @@ const { check, validationResult } = require('express-validator');
 
 const Profile = require('../../models/Profile');
 const User = require('../../models/User');
-const { response } = require('express');
 
 // @route   GET api/profile/me
 // @desc    Get the user based on token
@@ -73,32 +72,38 @@ router.post('/', auth, async (req, res) => {
     }
 )
 
+// @route   GET api/profile
+// @desc    Read all profiles
+// @access  Public
 router.get('/', async (req, res) => {
     Profile.find({}, (err, profiles) => {
         let profileMap = {};
-        console.log(profiles)
+
         profiles.forEach(profile => {
-            profileMap[profile.user] = profile.user;
+            profileMap[profile.user] = profile;
         })
 
         res.json({ profileMap });
     })
 })
 
-router.get('/user:id', async (req, res) => {
-    const { id } = req.body;
-    console.log( id );
-
-    
+// @route   GET api/profile/user:id
+// @desc    Read a single user based on ID
+// @access  Public
+router.get('/user/:user_id', async (req, res) => {
     try {
-        let user = await Profile.findById({ user: id });
+        const user = await Profile.findOne({ user: req.params.user_id }).select('-password');
+
         if (!user) {
-            return res.status(400).json({ msg: 'There are no users that match this Username.' })
+            return res.status(400).json({ msg: 'Profile Not Found!!!' })
         }
     
         res.json({ user });
-
     } catch (err) {
+        if (err.kind == 'ObjectId') {
+            return res.status(400).json({ msg: '...Profile Not Found...' }) 
+        }
+        
         res.status(500).send('Server Error...');
     }
 })
