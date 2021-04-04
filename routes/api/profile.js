@@ -5,6 +5,7 @@ const { check, validationResult } = require('express-validator');
 
 const Profile = require('../../models/Profile');
 const User = require('../../models/User');
+const { response } = require('express');
 
 // @route   GET api/profile/me
 // @desc    Get the user based on token
@@ -26,18 +27,10 @@ router.get('/me', auth, async (req, res) => {
     }
 });
 
-// status
-
 // @route   POST api/profile
 // @desc    Create/Update a user profile
 // @access  Private
-router.post('/', [ auth, [
-    check('availability', 'Availability is required').notEmpty()
-]], async (req, res) => {
-    const errors = validationResult(req);
-    if(!errors.isEmpty()) {
-        return res.status(400).json({ errors: errors.array() });
-    }
+router.post('/', auth, async (req, res) => {
 
     const {
         projects,
@@ -75,6 +68,37 @@ router.post('/', [ auth, [
         res.json(profile);
     } catch(err) {
         console.error(err.message);
+        res.status(500).send('Server Error...');
+    }
+    }
+)
+
+router.get('/', async (req, res) => {
+    Profile.find({}, (err, profiles) => {
+        let profileMap = {};
+        console.log(profiles)
+        profiles.forEach(profile => {
+            profileMap[profile.user] = profile.user;
+        })
+
+        res.json({ profileMap });
+    })
+})
+
+router.get('/user:id', async (req, res) => {
+    const { id } = req.body;
+    console.log( id );
+
+    
+    try {
+        let user = await Profile.findById({ user: id });
+        if (!user) {
+            return res.status(400).json({ msg: 'There are no users that match this Username.' })
+        }
+    
+        res.json({ user });
+
+    } catch (err) {
         res.status(500).send('Server Error...');
     }
 })

@@ -3,6 +3,7 @@ const config = require('config');
 
 module.exports = (req, res, next) => {
     // Get the token from the header
+    // console.log(JSON.stringify(req.headers))
     const token = req.header('x-auth-token');
 
     // Check for token
