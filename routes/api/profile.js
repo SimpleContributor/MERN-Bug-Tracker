@@ -77,13 +77,13 @@ router.post('/', auth, async (req, res) => {
 // @access  Public
 router.get('/', async (req, res) => {
     Profile.find({}, (err, profiles) => {
-        let profileMap = {};
+        let allProfiles = {};
 
         profiles.forEach(profile => {
-            profileMap[profile.user] = profile;
+            allProfiles[profile.user] = profile;
         })
 
-        res.json({ profileMap });
+        res.json({ allProfiles });
     })
 })
 
@@ -100,10 +100,11 @@ router.get('/user/:user_id', async (req, res) => {
     
         res.json({ user });
     } catch (err) {
+        // If the entered :user_id is invalid, return the proper error message
         if (err.kind == 'ObjectId') {
             return res.status(400).json({ msg: '...Profile Not Found...' }) 
         }
-        
+
         res.status(500).send('Server Error...');
     }
 })

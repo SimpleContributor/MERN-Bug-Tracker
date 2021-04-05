@@ -55,13 +55,20 @@ router.post('/', [
             }
         }
 
+        // Remove the password from the returning json
+        let userObj = user.toObject();
+        delete userObj.password;
+
         jwt.sign(
             payload, 
             config.get('jwtSecret'),
             { expiresIn: 360000 },
             (err, token) => {
                 if (err) throw err;
-                res.json({ token })
+                res.json({ 
+                    token,
+                    userObj
+                })
             }
         );
         
