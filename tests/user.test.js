@@ -5,8 +5,6 @@ const { userOneId, userOne, userTwoId, userTwo, setupDatabase } = require('./fix
 
 setupDatabase();
 
-let userToken;
-
 test('Should Signup a New User', async () => {
     const response = await request(app).post('/api/users').send({
         name: "Caleb Coe",
@@ -15,7 +13,6 @@ test('Should Signup a New User', async () => {
     }).expect(200);
 
     const user = await User.findById(response.body.userObj._id);
-    userToken = response.body.token;
     
     expect(user).not.toBeNull();
 
