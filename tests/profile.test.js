@@ -6,6 +6,9 @@ const Profile = require('../models/Profile');
 let userToken;
 let userId;
 
+
+// @route POST /api/auth
+// @access Public
 test('Should Login User', async () => {
     const response = await request(app)
         .post('/api/auth')
@@ -22,6 +25,8 @@ test('Should Login User', async () => {
 })
 
 
+// @route GET /api/auth
+// @access Private
 test('Get the User Data', async () => {
     const response = await request(app)
         .get('/api/auth')
@@ -35,6 +40,8 @@ test('Get the User Data', async () => {
 });
 
 
+// @route POST /api/profile
+// @access Private
 test('Create/Update a Profile', async () => {
     const response = await request(app)
         .post('/api/profile')
@@ -54,6 +61,8 @@ test('Create/Update a Profile', async () => {
 })
 
 
+// @route GET /api/profile/me
+// @access Private
 test('Get User Profile Based on Users Token', async () => {
     const response = await request(app)
         .get('/api/profile/me')
@@ -66,6 +75,8 @@ test('Get User Profile Based on Users Token', async () => {
 })
 
 
+// @route GET /api/profile
+// @access Public
 test('Get All User Profiles', async () => {
     const response = await request(app)
         .get('/api/profile')
@@ -76,6 +87,8 @@ test('Get All User Profiles', async () => {
 })
 
 
+// @route GET /api/profile/user/:user_id
+// @access Public
 test('Get User Profile Based on ID', async () => {
     const response = await request(app)
         .get(`/api/profile/user/${userId}`)
@@ -86,6 +99,8 @@ test('Get User Profile Based on ID', async () => {
 })
 
 
+// @route GET /api/profile/projects/:user_id
+// @access Public
 test('Get Users Projects By Id', async () => {
     const response = await request(app)
     .get(`/api/profile/projects/${userId}`)
@@ -97,8 +112,11 @@ test('Get Users Projects By Id', async () => {
 
 
 
-
 ///// DELETE TESTS /////
+
+
+// @route DELETE /api/profile
+// @access Private
 test('Delete User & Profile', async () => {
     const response = await request(app)
         .delete('/api/profile')

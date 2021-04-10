@@ -86,7 +86,7 @@ router.get('/', async (req, res) => {
     })
 })
 
-// @route   GET api/profile/user:id
+// @route   GET api/profile/user/:user_id
 // @desc    Read a single user based on ID
 // @access  Public
 router.get('/user/:user_id', async (req, res) => {
@@ -127,7 +127,7 @@ router.delete('/', auth, async (req, res) => {
     }
 })
 
-// @route   GET api/profile/projects
+// @route   GET api/profile/projects/:user_id
 // @desc    Get a users projects based on their id
 // @access  Public
 router.get('/projects/:user_id', async (req, res) => {
