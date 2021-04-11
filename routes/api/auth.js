@@ -51,7 +51,8 @@ router.post(
             // Return jwt if the email and password match a user in the DB
             const payload = {
                 user: {
-                    id: user.id
+                    id: user.id,
+                    name: user.name
                 }
             }
 

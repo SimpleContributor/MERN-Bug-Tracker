@@ -52,12 +52,10 @@ router.post('/', auth, async (req, res) => {
 })
     
 // @route   GET api/profile/me
-// @desc    Get the user based on token
+// @desc    Get the user profile based on token
 // @access  Private
 router.get('/me', auth, async (req, res) => {
     try {
-        // populate will add the authenticated users name (from registering their account) to the
-        // user field in Profile
         const profile = await Profile.findOne({ user: req.user.id }).populate('user', ['name']);
 
         if (!profile) {

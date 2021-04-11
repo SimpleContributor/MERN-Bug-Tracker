@@ -16,7 +16,7 @@ app.get('/', (req, res) => {
 
 // Define Routes
 app.use('/api/auth', require('./routes/api/auth'));
-app.use('/api/tickets', require('./routes/api/tickets'));
+app.use('/api/projects', require('./routes/api/projects'));
 app.use('/api/profile', require('./routes/api/profile'));
 app.use('/api/users', require('./routes/api/users'));
 
