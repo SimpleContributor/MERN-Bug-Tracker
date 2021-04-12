@@ -3,6 +3,7 @@ const router = express.Router();
 const auth = require('../../middleware/auth');
 const Project = require('../../models/Project');
 const Profile = require('../../models/Profile');
+const User = require('../../models/User');
 
 // @route   GET api/projects
 // @desc    Test route
@@ -10,7 +11,7 @@ const Profile = require('../../models/Profile');
 router.get('/', (req, res) => res.send('Projcets Route'));
 
 
-// @route   POST api/projcets
+// @route   POST api/projects
 // @desc    Create a new project
 // @access  Private
 router.post('/', auth, async (req, res) => {
@@ -18,6 +19,7 @@ router.post('/', auth, async (req, res) => {
     const {
         title,
         description,
+        status,
         ticket
     } = req.body;
 
@@ -33,6 +35,7 @@ router.post('/', auth, async (req, res) => {
     if (userData) projectFields.users.push(userData);
     if (title) projectFields.title = title;
     if (description) projectFields.description = description;
+    if (status) projectFields.status = status;
     if (ticket) projectFields.tickets.push(ticket);
 
     try {
@@ -53,6 +56,45 @@ router.post('/', auth, async (req, res) => {
     } catch (err) {
         console.error(err.message);
         res.status(500).send('Server Error...'); 
+    }
+})
+
+// @route   PUT api/projects/ticket/:project_id
+// @desc    Create a Ticket
+// @access  Private
+router.put('/ticket/:project_id', auth, async (req, res) => {
+
+    const {
+        ticket,
+        severity,
+        status,
+    } = req.body;
+
+    const ticketFields = {
+        comments: []
+    };
+
+    let userData = {
+        _id: req.user.id,
+        name: req.user.name
+    };
+
+    if (userData) ticketFields.user = userData;
+    if (ticket) ticketFields.ticket = ticket;
+    if (severity) ticketFields.severity = severity;
+    if (status) ticketFields.status = status;
+
+    try {
+        // const user = await Profile.findOne({ id: req.user.id }).select('-password');
+        const project = await Project.findOne({ id: req.params.project_id});
+
+        let validUser = project.users.some(el => el.user === req.user.id);
+        if (validUser) {
+            // allow user to create ticket
+        }
+    } catch (err) {
+        console.log(err.message);
+        res.status(500).send('Server Error...');        
     }
 })
 
