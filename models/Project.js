@@ -11,6 +11,11 @@ const ProjectSchema = new mongoose.Schema({
         required: true
     }, 
 
+    status: {
+        type: String,
+        required: true
+    },
+
     users: [{
         user: {
             type: mongoose.Schema.Types.ObjectId,
@@ -26,18 +31,42 @@ const ProjectSchema = new mongoose.Schema({
     tickets: [{
         ticket: String,
 
-        comments: [{
-            user: {
-                type: mongoose.Schema.Types.ObjectId,
-                required: true
-            },
+        ticketTime: {
+            type: Date,
+            default: Date.now
+        },
 
-            timeAdded: {
+        severity: String,
+
+        status: String,
+
+        user: {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: 'user',
+
+            name: {
+                type: String,
+                ref: 'user'
+            }
+        },
+
+        comments: [{
+            comment: String,
+
+            commentTime: {
                 type: Date,
                 default: Date.now
             },
 
-            comment: String
+            user: {
+                type: mongoose.Schema.Types.ObjectId,
+                required: true,
+
+                name: {
+                    type: String,
+                    ref: 'user'
+                }
+            }
         }],
 
 
