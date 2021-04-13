@@ -4,6 +4,7 @@ const auth = require('../../middleware/auth');
 const Project = require('../../models/Project');
 const Profile = require('../../models/Profile');
 const User = require('../../models/User');
+const { check, validationResult } = require('express-validator');
 
 // @route   GET api/projects
 // @desc    Test route
@@ -74,26 +75,31 @@ router.put('/ticket/:project_id', auth, async (req, res) => {
         comments: []
     };
 
-    let userData = {
-        _id: req.user.id,
-        name: req.user.name
-    };
+    // let userData = {
+    //     _id: req.user.id,
+    //     name: req.user.name
+    // };
 
-    if (userData) ticketFields.user = userData;
+    ticketFields.user = req.user.id;
+    ticketFields.user.name = req.user.name;
     if (ticket) ticketFields.ticket = ticket;
     if (severity) ticketFields.severity = severity;
     if (status) ticketFields.status = status;
 
     try {
-        // const user = await Profile.findOne({ id: req.user.id }).select('-password');
-        const project = await Project.findOne({ id: req.params.project_id});
+        const project = await Project.findOne({ _id: req.params.project_id});
 
-        let validUser = project.users.some(el => el.user === req.user.id);
-        if (validUser) {
-            // allow user to create ticket
+        let validUser = project.users.some(el => el.user.toString() === req.user.id);
+        if (!validUser) {
+            return res.status(404).send('User not Found to be a part of this project...');
         }
+
+        await project.tickets.unshift(ticketFields);
+        await project.save();
+
+        res.json(project.tickets);
     } catch (err) {
-        console.log(err.message);
+        console.error(err.message);
         res.status(500).send('Server Error...');        
     }
 })
