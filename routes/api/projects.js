@@ -9,7 +9,7 @@ const { check, validationResult } = require('express-validator');
 // @route   GET api/projects
 // @desc    Test route
 // @access  Public
-router.get('/', (req, res) => res.send('Projcets Route'));
+// router.get('/', (req, res) => res.send('Projcets Route'));
 
 
 // @route   POST api/projects
@@ -59,6 +59,23 @@ router.post('/', auth, async (req, res) => {
         res.status(500).send('Server Error...'); 
     }
 })
+
+
+// @route   GET api/projects
+// @desc    Get all projects
+// @access  Private
+router.get('/', async (req, res) => {
+    Project.find({}, (err, projects) => {
+        let allProjects = {};
+
+        projects.forEach(project => {
+            allProjects[project.title] = project;
+        })
+
+        res.json({ allProjects });
+    })
+})
+
 
 // @route   PUT api/projects/ticket/:project_id
 // @desc    Create a Ticket
