@@ -61,9 +61,34 @@ router.post('/', auth, async (req, res) => {
 })
 
 
+// @route   PUT api/projects/:project_id/:user_id
+// @desc    Add a new user to the project
+// @access  Private
+router.put('/:project_id/:user_id', auth, async (req, res) => {
+    try {
+        let project = await Project.findById(req.params.project_id);
+        let user = await User.findById(req.params.user_id ).select('-password');
+
+        if (!project) return res.status(404).send('No Project found...');
+        if (!user) return res.status(404).send('No User found...');
+
+        let validUser = project.users.some(el => el.user.toString() === req.params.user_id);
+        if (validUser) return res.status(400).send('User already included in this project...');
+
+        project.users.push({ user: user.id, name: user.name });
+        await project.save();
+
+        res.json(project.users);
+    } catch (err) {
+        console.error(err.message);
+        res.status(500).send('Server Error...');
+    }
+})
+
+
 // @route   GET api/projects
 // @desc    Get all projects
-// @access  Private
+// @access  Public
 router.get('/', async (req, res) => {
     Project.find({}, (err, projects) => {
         let allProjects = {};
