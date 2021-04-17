@@ -118,6 +118,22 @@ router.get('/:project_id/users', auth, async (req, res) => {
 })
 
 
+// @route   GET api/projects/:project_id/tickets
+// @desc    Get all tickets for a project
+// @access  Private
+router.get('/:project_id/tickets', auth, async (req, res) => {
+    try {
+        let project = await Project.findById(req.params.project_id);
+        if (!project) return res.status(404).send('Project not found...');
+
+        res.json(project.tickets);
+    } catch (err) {
+        console.error(err.message);
+        res.status(500).json({ msg: 'Server Error...' })
+    }
+})
+
+
 // @route   PUT api/projects/ticket/:project_id
 // @desc    Create a Ticket
 // @access  Private
