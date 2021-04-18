@@ -64,16 +64,20 @@ router.post('/', auth, async (req, res) => {
 // @route   PUT api/projects/:project_id/:user_id
 // @desc    Add a new user to the project
 // @access  Private
+/////////////////////////////////// Updated valid user to an auth user and not the params user
 router.put('/:project_id/:user_id', auth, async (req, res) => {
     try {
         let project = await Project.findById(req.params.project_id);
-        let user = await User.findById(req.params.user_id ).select('-password');
-
         if (!project) return res.status(404).send('No Project found...');
+        
+        let user = await User.findById(req.params.user_id ).select('-password');
         if (!user) return res.status(404).send('No User found...');
 
-        let validUser = project.users.some(el => el.user.toString() === req.params.user_id);
-        if (validUser) return res.status(400).send('User already included in this project...');
+        let validUser = await project.users.some(el => el.user.toString() === req.user.id);
+        if (!validUser) return res.status(400).send('User does not have permission to alter this project...');
+
+        let newUser = await project.users.some(el => el.user.toString() === req.params.user_id);
+        if (newUser) return res.status(400).send('User already included in this project...');
 
         project.users.push({ user: user.id, name: user.name });
         await project.save();
@@ -177,5 +181,34 @@ router.put('/ticket/:project_id', auth, async (req, res) => {
         res.status(500).send('Server Error...');        
     }
 })
+
+
+// @route   DELETE api/projects/:project_id/:user_id
+// @desc    Remove a user from the project
+// @access  Private
+router.delete('/:project_id/:user_id', auth, async (req, res) => {
+    try {
+        const project = await Project.findOne({ _id: req.params.project_id});
+        if (!project) return res.status(404).send('Project not found...');
+
+        let validUser = await project.users.some(el => el.user.toString() === req.user.id);
+        if (!validUser) {
+            return res.status(404).send('User not Found to be a part of this project... INVALID USER');
+        };
+        
+        const userIndex = await project.users.findIndex(el => el.user.toString() === req.params.user_id);
+        if (userIndex < 0) {
+            return res.status(404).send('User not Found to be a part of this project... UNKNOWN USER');
+        } else {
+            await project.users.splice(userIndex, 1);
+            await project.save();
+        };
+
+        res.json(project.users);
+    } catch (err) {
+        console.error(err.message);
+        res.status(500).send('Server Error...'); 
+    };
+});
 
 module.exports = router;
