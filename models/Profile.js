@@ -5,10 +5,16 @@ const ProfileSchema = new mongoose.Schema({
         type: mongoose.Schema.Types.ObjectId,
         ref: 'user'
     },
-
-    projects: {
-        type: [String],
+    
+    name: {
+        type: String,
+        ref: 'user'
     },
+
+    projects: [{
+        _id: mongoose.Schema.Types.ObjectId,
+        title: String
+    }],
 
     availability: {
         type: String,
