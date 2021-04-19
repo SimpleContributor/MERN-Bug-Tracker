@@ -28,6 +28,7 @@ router.post('/', auth, async (req, res) => {
         users: [],
         tickets: []
     };
+
     let userData = {
         user: req.user.id,
         name: req.user.name
@@ -53,6 +54,13 @@ router.post('/', auth, async (req, res) => {
         project = new Project(projectFields);
         await project.save();
 
+        let projectObj = {
+            _id: project._id,
+            title: project.title
+        }
+        await profile.projects.push(projectObj);
+        await profile.save();
+
         res.json(project);
     } catch (err) {
         console.error(err.message);
@@ -70,6 +78,8 @@ router.put('/:project_id/:user_id', auth, async (req, res) => {
         let project = await Project.findById(req.params.project_id);
         if (!project) return res.status(404).send('No Project found...');
         
+        // Change to use Profile so the project can be added to the users profile
+        // So far only checks the users collection, but would be better to use profiles collection
         let user = await User.findById(req.params.user_id ).select('-password');
         if (!user) return res.status(404).send('No User found...');
 
@@ -94,15 +104,20 @@ router.put('/:project_id/:user_id', auth, async (req, res) => {
 // @desc    Get all projects
 // @access  Public
 router.get('/', async (req, res) => {
-    Project.find({}, (err, projects) => {
-        let allProjects = {};
-
-        projects.forEach(project => {
-            allProjects[project.title] = project;
+    try {
+        Project.find({}, (err, projects) => {
+            let allProjects = {};
+    
+            projects.forEach(project => {
+                allProjects[project.title] = project;
+            })
+    
+            res.json({ allProjects });
         })
-
-        res.json({ allProjects });
-    })
+    } catch (err) {
+        console.error(err.message);
+        res.status(500).send('Server Error...');
+    }
 })
 
 
@@ -138,6 +153,8 @@ router.get('/:project_id/tickets', auth, async (req, res) => {
 })
 
 
+/////////////////// MOVE TO NEW API/FOLDER ///////////////////
+/////////////////// MOVE TO NEW API/FOLDER ///////////////////
 // @route   PUT api/projects/ticket/:project_id
 // @desc    Create a Ticket
 // @access  Private
@@ -152,11 +169,6 @@ router.put('/ticket/:project_id', auth, async (req, res) => {
     const ticketFields = {
         comments: []
     };
-
-    // let userData = {
-    //     _id: req.user.id,
-    //     name: req.user.name
-    // };
 
     ticketFields.user = req.user.id;
     ticketFields.user.name = req.user.name;
@@ -181,6 +193,8 @@ router.put('/ticket/:project_id', auth, async (req, res) => {
         res.status(500).send('Server Error...');        
     }
 })
+/////////////////// MOVE TO NEW API/FOLDER ///////////////////
+/////////////////// MOVE TO NEW API/FOLDER ///////////////////
 
 
 // @route   DELETE api/projects/:project_id/:user_id
@@ -197,11 +211,11 @@ router.delete('/:project_id/:user_id', auth, async (req, res) => {
         };
         
         const userIndex = await project.users.findIndex(el => el.user.toString() === req.params.user_id);
-        if (userIndex < 0) {
-            return res.status(404).send('User not Found to be a part of this project... UNKNOWN USER');
-        } else {
+        if (userIndex >= 0) {
             await project.users.splice(userIndex, 1);
             await project.save();
+        } else {
+            return res.status(404).send('User not Found to be a part of this project... UNKNOWN USER');
         };
 
         res.json(project.users);
