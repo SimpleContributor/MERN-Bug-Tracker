@@ -12,19 +12,18 @@ const User = require('../../models/User');
 router.post('/', auth, async (req, res) => {
     
     const {
-        projects,
+        // projects,
         availability,
         githubusername
     } = req.body;
     
     // Build Profile Object
     const profileFields = {};
+    profileFields.projects = [];
     profileFields.user = req.user.id;
+    profileFields.name = req.user.name;
     if (availability) profileFields.availability = availability;
     if (githubusername) profileFields.githubusername = githubusername;
-    if (projects) {
-        profileFields.projects = projects.split(',').map(project => project.trim());
-    }
     
     try {
         let profile = await Profile.findOne({ user: req.user.id });
