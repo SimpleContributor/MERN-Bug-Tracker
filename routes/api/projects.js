@@ -159,6 +159,7 @@ router.get('/:project_id/tickets', auth, async (req, res) => {
 // @desc    Create a Ticket
 // @access  Private
 router.put('/ticket/:project_id', auth, async (req, res) => {
+    // console.log('hello');
 
     const {
         ticket,
@@ -166,25 +167,28 @@ router.put('/ticket/:project_id', auth, async (req, res) => {
         status,
     } = req.body;
 
+    // console.log(ticket);
+
     const ticketFields = {
         comments: []
     };
 
-    ticketFields.user = req.user.id;
-    ticketFields.user.name = req.user.name;
     if (ticket) ticketFields.ticket = ticket;
     if (severity) ticketFields.severity = severity;
     if (status) ticketFields.status = status;
+    ticketFields.user = req.user.id;
+    ticketFields.user.name = req.user.name;
 
     try {
-        const project = await Project.findOne({ _id: req.params.project_id});
+        const project = await Project.findOne({ _id: req.params.project_id });
+        console.log(project);
 
-        let validUser = project.users.some(el => el.user.toString() === req.user.id);
+        let validUser = await project.users.some(el => el.user.toString() === req.user.id);
         if (!validUser) {
             return res.status(404).send('User not Found to be a part of this project...');
         }
 
-        await project.tickets.unshift(ticketFields);
+        await project.tickets.push(ticketFields);
         await project.save();
 
         res.json(project.tickets);

@@ -19,12 +19,12 @@ const ProjectSchema = new mongoose.Schema({
     users: [{
         user: {
             type: mongoose.Schema.Types.ObjectId,
-            ref: 'user' 
-        },
+            ref: 'user',
 
-        name: {
-            type: String,
-            ref: 'user'
+            name: {
+                type: String,
+                ref: 'user'
+            }
         }
     }],
 
@@ -47,9 +47,10 @@ const ProjectSchema = new mongoose.Schema({
             name: {
                 type: String,
                 ref: 'user'
-            }
+            },
         },
-
+        
+        
         comments: [{
             comment: String,
 
@@ -60,13 +61,13 @@ const ProjectSchema = new mongoose.Schema({
 
             user: {
                 type: mongoose.Schema.Types.ObjectId,
-                required: true,
 
                 name: {
                     type: String,
                     ref: 'user'
                 }
             }
+
         }],
 
 
