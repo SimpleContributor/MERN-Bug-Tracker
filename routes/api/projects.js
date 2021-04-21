@@ -75,18 +75,22 @@ router.post('/', auth, async (req, res) => {
 /////////////////////////////////// Updated valid user to an auth user and not the params user
 router.put('/:project_id/:user_id', auth, async (req, res) => {
     try {
-        let project = await Project.findById(req.params.project_id);
+        const project = await Project.findById(req.params.project_id);
         if (!project) return res.status(404).send('No Project found...');
         
         // Change to use Profile so the project can be added to the users profile
         // So far only checks the users collection, but would be better to use profiles collection
-        let user = await User.findById(req.params.user_id ).select('-password');
+        const user = await User.findById(req.params.user_id ).select('-password');
         if (!user) return res.status(404).send('No User found...');
-
-        let validUser = await project.users.some(el => el.user.toString() === req.user.id);
+        const userData = { 
+            user: user.id, 
+            name: user.name 
+        };
+        
+        const validUser = await project.users.some(el => el.user.toString() === req.user.id);
         if (!validUser) return res.status(400).send('User does not have permission to alter this project...');
-
-        let newUser = await project.users.some(el => el.user.toString() === req.params.user_id);
+        
+        const newUser = await project.users.some(el => el.user.toString() === req.params.user_id);
         if (newUser) return res.status(400).send('User already included in this project...');
 
         project.users.push({ user: user.id, name: user.name });
@@ -158,16 +162,12 @@ router.get('/:project_id/tickets', auth, async (req, res) => {
 // @route   PUT api/projects/ticket/:project_id
 // @desc    Create a Ticket
 // @access  Private
-router.put('/ticket/:project_id', auth, async (req, res) => {
-    // console.log('hello');
-
+router.put('/make/ticket/:project_id', auth, async (req, res) => {
     const {
         ticket,
         severity,
         status,
     } = req.body;
-
-    // console.log(ticket);
 
     const ticketFields = {
         comments: []
@@ -177,10 +177,12 @@ router.put('/ticket/:project_id', auth, async (req, res) => {
     if (severity) ticketFields.severity = severity;
     if (status) ticketFields.status = status;
     ticketFields.user = req.user.id;
-    ticketFields.user.name = req.user.name;
+    ticketFields.name = req.user.name;
+    //ticketFields._id = new mongoose.Types.ObjectId() //DOES NOT FIX err: Cast to ObjectId failed for value "ticket" at path "_id" for model "project"
 
     try {
-        const project = await Project.findOne({ _id: req.params.project_id });
+        const project = await Project.findById(req.params.project_id);
+        if (!project) return res.status(404).send('No project by this name found.');
         console.log(project);
 
         let validUser = await project.users.some(el => el.user.toString() === req.user.id);
@@ -188,7 +190,7 @@ router.put('/ticket/:project_id', auth, async (req, res) => {
             return res.status(404).send('User not Found to be a part of this project...');
         }
 
-        await project.tickets.push(ticketFields);
+        project.tickets.push(ticketFields);
         await project.save();
 
         res.json(project.tickets);
