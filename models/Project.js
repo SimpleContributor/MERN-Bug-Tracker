@@ -21,15 +21,18 @@ const ProjectSchema = new mongoose.Schema({
             type: mongoose.Schema.Types.ObjectId,
             ref: 'user',
 
-            name: {
-                type: String,
-                ref: 'user'
-            }
+        },
+
+        name: {
+            type: String,
+            ref: 'user'
         }
     }],
 
     tickets: [{
-        ticket: String,
+        ticket: {
+            type: String
+        },
 
         ticketTime: {
             type: Date,
@@ -44,12 +47,12 @@ const ProjectSchema = new mongoose.Schema({
             type: mongoose.Schema.Types.ObjectId,
             ref: 'user',
 
-            name: {
-                type: String,
-                ref: 'user'
-            },
         },
         
+        name: {
+            type: String,
+            ref: 'user'
+        },
         
         comments: [{
             comment: String,
@@ -62,12 +65,12 @@ const ProjectSchema = new mongoose.Schema({
             user: {
                 type: mongoose.Schema.Types.ObjectId,
 
-                name: {
-                    type: String,
-                    ref: 'user'
-                }
+            },
+            
+            name: {
+                type: String,
+                ref: 'user'
             }
-
         }],
 
 
