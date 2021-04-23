@@ -49,6 +49,13 @@ router.get('/:project_id', auth, async (req, res) => {
     try {
         const project = await Project.findById(req.params.project_id);
         if (!project) return res.status(500).json({ msg: 'No project by this name found.' });
+        
+        const validUser = await project.users.some(el => el.user.toString() === req.user.id);
+        if (!validUser) {
+            return res.status(404).send('User not Found to be a part of this project...');
+        }
+
+        if (project.tickets.length === 0) return res.json({ msg: "This project does not have any tickets." });
 
         res.json(project.tickets);
     } catch (err) {
