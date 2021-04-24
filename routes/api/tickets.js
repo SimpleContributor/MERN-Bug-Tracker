@@ -45,8 +45,35 @@ router.post('/:project_id/:ticket_id/comment', auth, async (req, res) => {
     }
 })
 
+// @route   PUT api/tickets/:project_id
+// @desc    Get all tickets in a project
+// @access  Private
 router.get('/:project_id', auth, async (req, res) => {
     try {
+        
+        const project = await Project.findById(req.params.project_id);
+        if (!project) return res.status(500).json({ msg: 'No project by this name found.' });
+        
+        const validUser = await project.users.some(el => el.user.toString() === req.user.id);
+        if (!validUser) {
+            return res.status(404).send('User not Found to be a part of this project...');
+        }
+        
+        if (project.tickets.length === 0) return res.json({ msg: "This project does not have any tickets." });
+
+        res.json(project.tickets);
+    } catch (err) {
+        console.error(err.message);
+        res.status(500).send('Server Error...');
+    };
+});
+
+// @route   PUT api/tickets/:ticket_id
+// @desc    Get a specific ticket
+// @access  Private
+router.get('/:project_id/:ticket_id', auth, async (req, res) => {
+    try {
+        
         const project = await Project.findById(req.params.project_id);
         if (!project) return res.status(500).json({ msg: 'No project by this name found.' });
         
@@ -56,8 +83,11 @@ router.get('/:project_id', auth, async (req, res) => {
         }
 
         if (project.tickets.length === 0) return res.json({ msg: "This project does not have any tickets." });
+        
+        const ticketIndex = project.tickets.findIndex(ticket => ticket._id.toString() === req.params.ticket_id);
+        if (ticketIndex === -1) return res.status(500).json({ msg: 'No ticket found.' });
 
-        res.json(project.tickets);
+        res.json(project.tickets[ticketIndex]);
     } catch (err) {
         console.error(err.message);
         res.status(500).send('Server Error...');
