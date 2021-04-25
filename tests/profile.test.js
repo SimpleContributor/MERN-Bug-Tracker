@@ -3,6 +3,32 @@ const app = require('../server');
 const User = require('../models/User');
 const Profile = require('../models/Profile');
 
+/* 
+Order of testing:
+- Create a new account (only test located in tests/user.test.js)    [COMPLETE]
+- Sign in to that new account                                       [COMPLETE]
+- Look at user data based on jwt                                    [COMPLETE]
+- Create a profile                                                  [COMPLETE]
+- Update (change) a field for profile                               [NO TEST]
+- Look at profile based on jwt                                      [COMPLETE]
+- Look at all profiles based on jwt                                 [COMPLETE]
+- Look at specific profile based on user id                         [COMPLETE]
+- Create a project                                                  [NO TEST]
+- Look at all projects in a profile based on user id                [NO TEST]
+- Look at a specific project based on project id                    [NO TEST/ROUTE]
+- Update (add) valid users on a project                             [NO TEST]
+- Look at users on a project based on project id                    [NO TEST]
+- Update (remove) valid users on a project                          [NO TEST]
+- Create a ticket for a project based on project id                 [NO TEST]
+- Create a comment on a ticket based on project and ticket ids      [NO TEST]
+- Look at all tickets based on project id                           [NO TEST]
+- Look at a specific ticket based on project and ticket ids         [NO TEST]
+- Delete comment                                                    [NO TEST/ROUTE]
+- Delete ticket                                                     [NO TEST/ROUTE]
+- Delete project                                                    [NO TEST/ROUTE]
+- Delete user & profile                                             [COMPLETE]
+*/
+
 let userToken;
 let userId;
 
@@ -101,7 +127,7 @@ test('Get User Profile Based on ID', async () => {
 
 // @route GET /api/profile/projects/:user_id
 // @access Public
-test('Get Users Projects By Id', async () => {
+test('Get Users Projects By User Id', async () => {
     const response = await request(app)
     .get(`/api/profile/projects/${userId}`)
     .send()
