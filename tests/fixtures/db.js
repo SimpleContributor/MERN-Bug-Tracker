@@ -2,6 +2,7 @@ const mongoose = require('mongoose');
 const jwt = require('jsonwebtoken');
 const User = require('../../models/User');
 const Profile = require('../../models/Profile');
+const Project = require('../../models/Project');
 
 const userOneId = new mongoose.Types.ObjectId();
 const userOne = {
@@ -22,6 +23,7 @@ const userTwo = {
 const setupDatabase = async () => {
     await User.deleteMany();
     await Profile.deleteMany();
+    await Project.deleteMany();
     await new User(userOne).save();
     await new User(userTwo).save();
 }
