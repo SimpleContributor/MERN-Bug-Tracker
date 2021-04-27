@@ -73,6 +73,7 @@ router.post('/', auth, async (req, res) => {
 // @desc    Add a new user to the project
 // @access  Private
 /////////////////////////////////// Updated valid user to an auth user and not the params user
+// Add method to remove a user if they already exist on the project.
 router.put('/:project_id/:user_id', auth, async (req, res) => {
     try {
         const project = await Project.findById(req.params.project_id);
@@ -90,8 +91,9 @@ router.put('/:project_id/:user_id', auth, async (req, res) => {
         const validUser = await project.users.some(el => el.user.toString() === req.user.id);
         if (!validUser) return res.status(400).send('User does not have permission to alter this project...');
         
-        const newUser = await project.users.some(el => el.user.toString() === req.params.user_id);
-        if (newUser) return res.status(400).send('User already included in this project...');
+        // Change this to delete the user instead of throwing an err message
+        const existingUser = await project.users.some(el => el.user.toString() === req.params.user_id);
+        if (existingUser) return res.status(400).send('User already included in this project...');
 
         project.users.push({ user: user.id, name: user.name });
         await project.save();
@@ -121,6 +123,22 @@ router.get('/', async (req, res) => {
     } catch (err) {
         console.error(err.message);
         res.status(500).send('Server Error...');
+    }
+})
+
+
+// @route   GET api/projects/:project_id
+// @desc    Get a specific project by id
+// @access  Private
+router.get('/:project_id', auth, async (req, res) => {
+    try {
+        let project = await Project.findById(req.params.project_id);
+        if (!project) return res.status(404).send('Project not found...');
+
+        res.json(project);
+    } catch (err) {
+        console.error(err.message);
+        res.status(500).json({ msg: 'Server Error...' })
     }
 })
 
@@ -203,6 +221,7 @@ router.put('/make/ticket/:project_id', auth, async (req, res) => {
 /////////////////// MOVE TO NEW API/FOLDER ///////////////////
 
 
+/// REMOVE THIS ROUTE WHEN PUT IS UPDATED TO DELETE AN EXISTING USER
 // @route   DELETE api/projects/:project_id/:user_id
 // @desc    Remove a user from the project
 // @access  Private
@@ -230,5 +249,9 @@ router.delete('/:project_id/:user_id', auth, async (req, res) => {
         res.status(500).send('Server Error...'); 
     };
 });
+
+// @route   DELETE api/projects/:project_id
+// @desc    Delete a project
+// @access  Private
 
 module.exports = router;
