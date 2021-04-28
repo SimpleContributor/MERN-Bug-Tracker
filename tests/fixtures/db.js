@@ -3,6 +3,7 @@ const jwt = require('jsonwebtoken');
 const User = require('../../models/User');
 const Profile = require('../../models/Profile');
 const Project = require('../../models/Project');
+const bcrypt = require('bcryptjs');
 
 const userOneId = new mongoose.Types.ObjectId();
 const userOne = {
@@ -18,12 +19,16 @@ const userTwo = {
     name: "Jane Doe",
     email: "janedoe@gmail.com",
     password: "123456",
+    
 }
+
 
 const setupDatabase = async () => {
     await User.deleteMany();
     await Profile.deleteMany();
     await Project.deleteMany();
+    const salt = await bcrypt.genSalt(10);
+    userTwo.password = await bcrypt.hash(userTwo.password, salt);
     await new User(userOne).save();
     await new User(userTwo).save();
 }
