@@ -72,8 +72,6 @@ router.post('/', auth, async (req, res) => {
 // @route   PUT api/projects/:project_id/:user_id
 // @desc    Add a new user to the project
 // @access  Private
-/////////////////////////////////// Updated valid user to an auth user and not the params user
-// Add method to remove a user if they already exist on the project.
 router.put('/:project_id/:user_id', auth, async (req, res) => {
     try {
         const project = await Project.findById(req.params.project_id);
@@ -82,7 +80,7 @@ router.put('/:project_id/:user_id', auth, async (req, res) => {
         // Change to use Profile so the project can be added to the users profile
         // So far only checks the users collection, but would be better to use profiles collection
         const user = await User.findById(req.params.user_id ).select('-password');
-        if (!user) return res.status(404).send('No User found...');
+        if (!user) return res.status(418).send('No User found...');
         const userData = { 
             user: user.id, 
             name: user.name 
@@ -93,7 +91,7 @@ router.put('/:project_id/:user_id', auth, async (req, res) => {
         
         // Change this to delete the user instead of throwing an err message
         const existingUser = await project.users.some(el => el.user.toString() === req.params.user_id);
-        if (existingUser) return res.status(400).send('User already included in this project...');
+        if (existingUser) return res.status(202).send('User already included in this project...');
 
         project.users.push({ user: user.id, name: user.name });
         await project.save();
@@ -175,53 +173,6 @@ router.get('/:project_id/tickets', auth, async (req, res) => {
 })
 
 
-/////////////////// MOVE TO NEW API/FOLDER ///////////////////
-/////////////////// MOVE TO NEW API/FOLDER ///////////////////
-// @route   PUT api/projects/ticket/:project_id
-// @desc    Create a Ticket
-// @access  Private
-router.put('/make/ticket/:project_id', auth, async (req, res) => {
-    const {
-        ticket,
-        severity,
-        status,
-    } = req.body;
-
-    const ticketFields = {
-        comments: []
-    };
-
-    if (ticket) ticketFields.ticket = ticket;
-    if (severity) ticketFields.severity = severity;
-    if (status) ticketFields.status = status;
-    ticketFields.user = req.user.id;
-    ticketFields.name = req.user.name;
-    //ticketFields._id = new mongoose.Types.ObjectId() //DOES NOT FIX err: Cast to ObjectId failed for value "ticket" at path "_id" for model "project"
-
-    try {
-        const project = await Project.findById(req.params.project_id);
-        if (!project) return res.status(404).send('No project by this name found.');
-        console.log(project);
-
-        let validUser = await project.users.some(el => el.user.toString() === req.user.id);
-        if (!validUser) {
-            return res.status(404).send('User not Found to be a part of this project...');
-        }
-
-        project.tickets.push(ticketFields);
-        await project.save();
-
-        res.json(project.tickets);
-    } catch (err) {
-        console.error(err.message);
-        res.status(500).send('Server Error...');        
-    }
-})
-/////////////////// MOVE TO NEW API/FOLDER ///////////////////
-/////////////////// MOVE TO NEW API/FOLDER ///////////////////
-
-
-/// REMOVE THIS ROUTE WHEN PUT IS UPDATED TO DELETE AN EXISTING USER
 // @route   DELETE api/projects/:project_id/:user_id
 // @desc    Remove a user from the project
 // @access  Private
