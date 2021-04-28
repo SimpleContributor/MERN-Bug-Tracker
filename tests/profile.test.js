@@ -2,6 +2,7 @@ const request = require('supertest');
 const app = require('../server');
 const User = require('../models/User');
 const Profile = require('../models/Profile');
+const { userOneId, userOne, userTwoId, userTwo, setupDatabase } = require('./fixtures/db');
 
 /* 
 Order of testing:
@@ -13,13 +14,13 @@ Order of testing:
 - Look at profile based on jwt                                     |  [COMPLETE] //
 - Look at all profiles                                             |  [COMPLETE] //
 - Look at specific profile based on user id                        |  [COMPLETE] //
-- Create a project                                                 |  [COMPLETE]
+- Create a project                                                 |  [COMPLETE] //
 - Look at all projects in a profile based on user id               |  [COMPLETE] //
-- Look at a specific project based on project id                   |  [NO TEST/ROUTE]
-- Update (add) valid users on a project                            |  [NO TEST]
-- Look at users on a project based on project id                   |  [NO TEST]
-- Update (remove) valid users on a project                         |  [NO TEST]
-- Create a ticket for a project based on project id                |  [NO TEST]
+- Look at a specific project based on project id                   |  [COMPLETE] //
+- Update (add) valid users on a project                            |  [COMPLETE] //////
+- Look at users on a project based on project id                   |  [COMPLETE] //////
+- Remove a valid user from a project                               |  [COMPLETE] //////
+- Create a ticket for a project based on project id                |  [COMPLETE] //////
 - Create a comment on a ticket based on project and ticket ids     |  [NO TEST]
 - Look at all tickets based on project id                          |  [NO TEST]
 - Look at a specific ticket based on project and ticket ids        |  [NO TEST]
@@ -32,9 +33,32 @@ Order of testing:
 let userToken;
 let userId;
 let projectId;
+let ticketId;
+
+setupDatabase();
+
+// @desc   | Create a new account
+// @route  | POST /api/users
+// @access | Public
+test('Should Signup a New User', async () => {
+    const response = await request(app)
+        .post('/api/users')
+        .send({
+            name: "Caleb Coe",
+            email: "calebcoe0@gmail.com",
+            password: "123456"
+        })
+        .expect(200);
+
+    const user = await User.findById(response.body.userObj._id);
+    
+    expect(user).not.toBeNull();
+
+    expect(user.password).not.toBe('123456');
+});
 
 
-// @desc   | Sign in to the new account
+// @desc   | Log in to the new account
 // @route  | POST /api/auth
 // @access | Public
 test('Should Login User', async () => {
@@ -184,12 +208,11 @@ test('Get Users Projects By User Id', async () => {
     expect(response.body.user).toBe('Caleb Coe');
 
     projectId = response.body.projects[0]._id;
-    console.log(projectId);
 })
 
 
 // @desc   | Look at a specific project based on project id
-// @route  | GET /api/profile/projects/:project_id
+// @route  | GET /api/projects/:project_id
 // @access | Private
 test('Get a specific project by id', async () => {
     const response = await request(app)
@@ -200,10 +223,96 @@ test('Get a specific project by id', async () => {
 })
 
 
+// @desc   | Update (add) valid users on a project
+// @route  | PUT api/projects/:project_id/:user_id
+// @access | Private
+test('Update (add) valid users on a project', async () => {
+    const response = await request(app)
+        .put(`/api/projects/${projectId}/${userTwoId}`)
+        .set('x-auth-token', userToken)
+        .send()
+        .expect(200)
+})
 
+
+// @desc   | Look at users on a project based on project id
+// @route  | GET api/projects/:project_id/users
+// @access | Private
+test('Look at valid users on a project', async () => {
+    const response = await request(app)
+        .get(`/api/projects/${projectId}/users`)
+        .set('x-auth-token', userToken)
+        .send()
+        .expect(200)
+       
+    expect(response.body.length).toBe(2);    
+})
+
+
+// @desc   | Update (remove) valid users on a project
+// @route  | DELETE api/projects//:project_id/:user_id
+// @access | Private
+test('Remove a valid user from a project', async () => {
+    const response = await request(app)
+        .delete(`/api/projects/${projectId}/${userTwoId}`)
+        .set('x-auth-token', userToken)
+        .send()
+        .expect(200)
+
+        expect(response.body.length).toBe(1);
+})
+
+
+// @desc   | Create a ticket for a project based on project id
+// @route  | POST api/tickets/:project_id
+// @access | Private
+test('Create a ticket for a project', async () => {
+    const response = await request(app)
+        .post(`/api/tickets/${projectId}`)
+        .set('x-auth-token', userToken)
+        .set('Content-Type', 'application/json')
+        .send({
+            "ticket": "Jest Test Ticket",
+            "severity": "MODERATE",
+            "status": "In Progress"
+        })
+        .expect(200);
+
+    expect(response.body.length).toBe(1);    
+})
+
+
+// @desc   | Create a comment on a ticket based on project and ticket ids
+// @route  | POST api/tickets/:project_id/:ticket_id/comment
+// @access | Private
+
+
+// @desc   | Look at all tickets based on project id
+// @route  | GET api/tickets/:project_id
+// @access | Private
+
+
+// @desc   | Look at a specific ticket based on project and ticket ids
+// @route  | GET api/tickets/:project_id/:ticket_id
+// @access | Private
 
 
 ///// DELETE TESTS /////
+
+
+// @desc   | Delete comment
+// @route  | DELETE /api/tickets/:project_id/:ticket_id/:comment_id
+// @access | Private
+
+// @desc   | Delete ticket
+// @route  | DELETE /api/tickets/:project_id/:ticket_id
+// @access | Private
+
+// @desc   | Delete project
+// @route  | DELETE /api/projects/:project_id
+// @access | Private
+
+
 
 // @desc   | Delete user & profile
 // @route  | DELETE /api/profile
