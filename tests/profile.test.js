@@ -17,13 +17,13 @@ Order of testing:
 - Create a project                                                 |  [COMPLETE] //
 - Look at all projects in a profile based on user id               |  [COMPLETE] //
 - Look at a specific project based on project id                   |  [COMPLETE] //
-- Update (add) valid users on a project                            |  [COMPLETE] //////
-- Look at users on a project based on project id                   |  [COMPLETE] //////
-- Remove a valid user from a project                               |  [COMPLETE] //////
-- Create a ticket for a project based on project id                |  [COMPLETE] //////
-- Create a comment on a ticket based on project and ticket ids     |  [NO TEST]
-- Look at all tickets based on project id                          |  [NO TEST]
-- Look at a specific ticket based on project and ticket ids        |  [NO TEST]
+- Update (add) valid users on a project                            |  [COMPLETE] //
+- Look at users on a project based on project id                   |  [COMPLETE] //
+- Remove a valid user from a project                               |  [COMPLETE] //
+- Create a ticket for a project based on project id                |  [COMPLETE] //
+- Create a comment on a ticket based on project and ticket ids     |  [COMPLETE] //////
+- Look at all tickets based on project id                          |  [COMPLETE] //////
+- Look at a specific ticket based on project and ticket ids        |  [COMPLETE] //////
 - Delete comment                                                   |  [NO TEST/ROUTE]
 - Delete ticket                                                    |  [NO TEST/ROUTE]
 - Delete project                                                   |  [NO TEST/ROUTE]
@@ -278,26 +278,65 @@ test('Create a ticket for a project', async () => {
         })
         .expect(200);
 
-    expect(response.body.length).toBe(1);    
+    expect(response.body.length).toBe(1);  
+    ticketId = response.body[0]._id;  
 })
 
 
 // @desc   | Create a comment on a ticket based on project and ticket ids
 // @route  | POST api/tickets/:project_id/:ticket_id/comment
 // @access | Private
+test('Create a comment on a ticket', async () => {
+    const response = await request(app)
+        .post(`/api/tickets/${projectId}/${ticketId}/comment`)
+        .set('x-auth-token', userToken)
+        .set('Content-Type', 'application/json')
+        .send({
+            "comment": "Test comment."
+        })
+        .expect(200);
+
+    expect(response.body.length).toBe(1);
+    expect(response.body[0].comment).toBe("Test comment.");
+})
 
 
 // @desc   | Look at all tickets based on project id
 // @route  | GET api/tickets/:project_id
 // @access | Private
+test('Look at all tickets based on project id', async () => {
+    const response = await request(app)
+        .get(`/api/tickets/${projectId}`)
+        .set('x-auth-token', userToken)
+        .send()
+        .expect(200);
+
+    expect(response.body.length).toBe(1);
+})
 
 
 // @desc   | Look at a specific ticket based on project and ticket ids
 // @route  | GET api/tickets/:project_id/:ticket_id
 // @access | Private
+test('Look at a specific ticket', async () => {
+    const response = await request(app)
+        .get(`/api/tickets/${projectId}/${ticketId}`)
+        .set('x-auth-token', userToken)
+        .send()
+        .expect(200);
+
+    expect(response.body.comments[0].comment).toBe("Test comment.");
+})
 
 
+
+
+
+////////////////////////
+////////////////////////
 ///// DELETE TESTS /////
+////////////////////////
+////////////////////////
 
 
 // @desc   | Delete comment
