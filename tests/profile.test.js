@@ -3,6 +3,7 @@ const app = require('../server');
 const User = require('../models/User');
 const Profile = require('../models/Profile');
 const { userOneId, userOne, userTwoId, userTwo, setupDatabase } = require('./fixtures/db');
+const { urlencoded } = require('express');
 
 /* 
 Order of testing:
@@ -21,12 +22,12 @@ Order of testing:
 - Look at users on a project based on project id                   |  [COMPLETE] //
 - Remove a valid user from a project                               |  [COMPLETE] //
 - Create a ticket for a project based on project id                |  [COMPLETE] //
-- Create a comment on a ticket based on project and ticket ids     |  [COMPLETE] //////
-- Look at all tickets based on project id                          |  [COMPLETE] //////
-- Look at a specific ticket based on project and ticket ids        |  [COMPLETE] //////
-- Delete comment                                                   |  [NO TEST/ROUTE]
-- Delete ticket                                                    |  [NO TEST/ROUTE]
-- Delete project                                                   |  [NO TEST/ROUTE]
+- Create a comment on a ticket based on project and ticket ids     |  [COMPLETE] //
+- Look at all tickets based on project id                          |  [COMPLETE] //
+- Look at a specific ticket based on project and ticket ids        |  [COMPLETE] //
+- Delete comment by project, ticket and comment id                 |  [NO ROUTE] //////
+- Delete ticket by project and ticket id                           |  [NO ROUTE] //////
+- Delete project by project id                                     |  [NO ROUTE] //////
 - Delete user & profile                                            |  [COMPLETE] //
 */
 
@@ -34,6 +35,7 @@ let userToken;
 let userId;
 let projectId;
 let ticketId;
+let commentId;
 
 setupDatabase();
 
@@ -298,6 +300,8 @@ test('Create a comment on a ticket', async () => {
 
     expect(response.body.length).toBe(1);
     expect(response.body[0].comment).toBe("Test comment.");
+
+    commentId = response.body[0]._id;
 })
 
 
@@ -339,17 +343,46 @@ test('Look at a specific ticket', async () => {
 ////////////////////////
 
 
-// @desc   | Delete comment
+// @desc   | Delete comment by project, ticket and comment id
 // @route  | DELETE /api/tickets/:project_id/:ticket_id/:comment_id
 // @access | Private
+test('Delete Comment', async () => {
+    const response = await request(app)
+        .delete(`/api/tickets/${projectId}/${ticketId}/${commentId}`)
+        .set('x-auth-token', userToken)
+        .send()
+        .expect(200);
 
-// @desc   | Delete ticket
+    expect(response.body.msg).toBe('Comment deleted...');
+})
+
+
+// @desc   | Delete ticket by project and ticket id
 // @route  | DELETE /api/tickets/:project_id/:ticket_id
 // @access | Private
+test('Delete Ticket', async () => {
+    const response = await request(app)
+        .delete(`/api/tickets/${projectId}/${ticketId}`)
+        .set('x-auth-token', userToken)
+        .send()
+        .expect(200);
 
-// @desc   | Delete project
+    expect(response.body.msg).toBe('Ticket deleted...');
+})
+
+
+// @desc   | Delete project by project id
 // @route  | DELETE /api/projects/:project_id
 // @access | Private
+test('Delete Project', async () => {
+    const response = await request(app)
+        .delete(`/api/projects/${projectId}`)
+        .set('x-auth-token', userToken)
+        .send()
+        .expect(200);
+
+    expect(response.body.msg).toBe('Project deleted...');
+})
 
 
 
