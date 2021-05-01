@@ -2,8 +2,7 @@ const request = require('supertest');
 const app = require('../server');
 const User = require('../models/User');
 const Profile = require('../models/Profile');
-const { userOneId, userOne, userTwoId, userTwo, setupDatabase } = require('./fixtures/db');
-const { urlencoded } = require('express');
+const { userTwoId, setupDatabase } = require('./fixtures/db');
 
 /* 
 Order of testing:
@@ -25,9 +24,9 @@ Order of testing:
 - Create a comment on a ticket based on project and ticket ids     |  [COMPLETE] //
 - Look at all tickets based on project id                          |  [COMPLETE] //
 - Look at a specific ticket based on project and ticket ids        |  [COMPLETE] //
-- Delete comment by project, ticket and comment id                 |  [NO ROUTE] //////
-- Delete ticket by project and ticket id                           |  [NO ROUTE] //////
-- Delete project by project id                                     |  [NO ROUTE] //////
+- Delete comment by project, ticket and comment id                 |  [COMPLETE] //
+- Delete ticket by project and ticket id                           |  [COMPLETE] //
+- Delete project by project id                                     |  [COMPLETE] //
 - Delete user & profile                                            |  [COMPLETE] //
 */
 
