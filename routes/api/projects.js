@@ -201,8 +201,28 @@ router.delete('/:project_id/:user_id', auth, async (req, res) => {
     };
 });
 
+
 // @route   DELETE api/projects/:project_id
 // @desc    Delete a project
 // @access  Private
+router.delete('/:project_id', auth, async (req, res) => {
+    try {
+        const project = await Project.findOne({ _id: req.params.project_id});
+        if (!project) return res.status(404).send('Project not found...');
+    
+        let validUser = await project.users.some(el => el.user.toString() === req.user.id);
+        if (!validUser) {
+            return res.status(404).send('User not Found to be a part of this project... INVALID USER');
+        };
+
+        await Project.findOneAndRemove({ _id: project._id });
+        
+        res.json({ msg: 'Project deleted...' });
+    } catch (err) {
+        console.error(err.message);
+        res.status(500).send('Server Error...');
+    }
+
+})
 
 module.exports = router;
