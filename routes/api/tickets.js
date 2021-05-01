@@ -142,4 +142,67 @@ router.get('/:project_id/:ticket_id', auth, async (req, res) => {
     };
 });
 
+
+// - Delete comment by project, ticket and comment id                 |  [NO ROUTE] /
+// @route   DELETE api/tickets/:project_id/:ticket_id/:comment_id
+// @desc    Delete a comment on a ticket
+// @access  Private
+router.delete('/:project_id/:ticket_id/:comment_id', auth, async (req, res) => {
+    try {
+        const project = await Project.findById(req.params.project_id);
+        if (!project) return res.status(500).json({ msg: 'No project by this name found.' });
+        
+        const validUser = await project.users.some(el => el.user.toString() === req.user.id);
+        if (!validUser) {
+            return res.status(404).send('User not Found to be a part of this project...');
+        }
+    
+        if (project.tickets.length === 0) return res.json({ msg: "This project does not have any tickets." });
+        
+        const ticketIndex = await project.tickets.findIndex(ticket => ticket._id.toString() === req.params.ticket_id);
+        if (ticketIndex === -1) return res.status(500).json({ msg: 'No ticket found.' });
+    
+        if (project.tickets[ticketIndex].comments.length === 0) return res.json({ msg: "This ticket does not have any comments." });
+        
+        const commentIndex = await project.tickets[ticketIndex].comments.findIndex(comment => comment._id.toString() === req.params.comment_id);
+        if (commentIndex === -1) return res.status(500).json({ msg: 'No ticket found.' });
+
+        // splice comment out of comments array
+        await project.tickets[ticketIndex].comments.splice(commentIndex, 1);
+        await project.save();
+        
+        res.json({ msg: 'Comment deleted...' });
+    } catch (err) {
+        console.error(err.message);
+        res.status(500).send('Server Error...');
+    }
+
+})
+
+
+// - Delete ticket by project and ticket id                           |  [NO ROUTE] /
+// @route   DELETE api/tickets/:project_id/:ticket_id
+// @desc    Delete a ticket on a project
+// @access  Private
+router.delete('/:project_id/:ticket_id', auth, async (req, res) => {
+    const project = await Project.findById(req.params.project_id);
+    if (!project) return res.status(500).json({ msg: 'No project by this name found.' });
+    
+    const validUser = await project.users.some(el => el.user.toString() === req.user.id);
+    if (!validUser) {
+        return res.status(404).send('User not Found to be a part of this project...');
+    }
+
+    if (project.tickets.length === 0) return res.json({ msg: "This project does not have any tickets." });
+    
+    const ticketIndex = project.tickets.findIndex(ticket => ticket._id.toString() === req.params.ticket_id);
+    if (ticketIndex === -1) return res.status(404).json({ msg: 'No ticket found.' });
+
+    
+    await project.tickets.splice(ticketIndex, 1);
+    await project.save();
+
+    res.json({ msg: "Ticket deleted..." });
+})
+
 module.exports = router;
