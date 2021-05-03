@@ -77,10 +77,12 @@ router.put('/:project_id/:user_id', auth, async (req, res) => {
         const project = await Project.findById(req.params.project_id);
         if (!project) return res.status(404).send('No Project found...');
         
-        // Change to use Profile so the project can be added to the users profile
-        // So far only checks the users collection, but would be better to use profiles collection
+        const profile = await Profile.findOne({ user: req.params.user_id });
+        if (!profile) return res.status(404).send('User does not have a profile to add the project to.');
+
         const user = await User.findById(req.params.user_id ).select('-password');
         if (!user) return res.status(418).send('No User found...');
+
         const userData = { 
             user: user.id, 
             name: user.name 
@@ -89,11 +91,17 @@ router.put('/:project_id/:user_id', auth, async (req, res) => {
         const validUser = await project.users.some(el => el.user.toString() === req.user.id);
         if (!validUser) return res.status(400).send('User does not have permission to alter this project...');
         
-        // Change this to delete the user instead of throwing an err message
         const existingUser = await project.users.some(el => el.user.toString() === req.params.user_id);
         if (existingUser) return res.status(202).send('User already included in this project...');
 
-        project.users.push({ user: user.id, name: user.name });
+        let projectObj = {
+            _id: project._id,
+            title: project.title
+        }
+        await profile.projects.push(projectObj);
+        await profile.save();
+
+        await project.users.push(userData);
         await project.save();
 
         res.json(project.users);
@@ -194,6 +202,13 @@ router.delete('/:project_id/:user_id', auth, async (req, res) => {
             return res.status(404).send('User not Found to be a part of this project... UNKNOWN USER');
         };
 
+        const profile = await Profile.findOne({ user: req.params.user_id });
+        if (!profile) return res.status(404).send('User does not have a profile...');
+        const projectIndex = await profile.projects.findIndex(project => project._id.toString() === req.params.project_id);
+        if (projectIndex < 0) return res.status(404).send('User does not have this project in their profile.');
+        await profile.projects.splice(projectIndex, 1);
+        await profile.save();
+
         res.json(project.users);
     } catch (err) {
         console.error(err.message);
@@ -205,6 +220,9 @@ router.delete('/:project_id/:user_id', auth, async (req, res) => {
 // @route   DELETE api/projects/:project_id
 // @desc    Delete a project
 // @access  Private
+
+// Add logic to remove the project id from any valid users profiles.
+// for each user on the project, go to their profile and remove the project
 router.delete('/:project_id', auth, async (req, res) => {
     try {
         const project = await Project.findOne({ _id: req.params.project_id});
@@ -215,14 +233,25 @@ router.delete('/:project_id', auth, async (req, res) => {
             return res.status(404).send('User not Found to be a part of this project... INVALID USER');
         };
 
-        await Project.findOneAndRemove({ _id: project._id });
+        project.users.forEach(async user => {
+            let _id = user.user;
+            
+            const profile = await Profile.findOne({ user: _id });
+            if (!profile) return res.status(400).send('No profile...');
+            
+            let projectIndex = await profile.projects.findIndex(project => project._id.toString() === req.params.project_id);
+            if (projectIndex < 0) return res.status(400).send('No project by this id for this user...');
+            
+            await profile.projects.splice(projectIndex, 1);
+            await profile.save();
+        })
         
+        await Project.findOneAndRemove({ _id: project._id });
         res.json({ msg: 'Project deleted...' });
     } catch (err) {
         console.error(err.message);
         res.status(500).send('Server Error...');
     }
-
 })
 
 module.exports = router;
