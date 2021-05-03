@@ -31,6 +31,7 @@ Order of testing:
 */
 
 let userToken;
+let userTwoToken;
 let userId;
 let projectId;
 let ticketId;
@@ -77,6 +78,24 @@ test('Should Login User', async () => {
     userToken = response.body.token;
 })
 
+// @desc   | Log in to the Jane Doe account (for the token)
+// @route  | POST /api/auth
+// @access | Public
+test('Should Login Second User Jane Doe', async () => {
+    const response = await request(app)
+        .post('/api/auth')
+        .set('Content-Type', 'application/json')
+        .send({
+            email: "janedoe@gmail.com",
+            password: "123456"
+        })
+        .expect(200);
+
+    expect(response.body.token).not.toBeNull();
+
+    userTwoToken = response.body.token;
+})
+
 
 // @desc   | Look at user data based on jwt
 // @route  | GET /api/auth
@@ -113,6 +132,26 @@ test('Create a Profile', async () => {
     expect(profile).not.toBeNull();
 
     expect(response.body.githubusername).toBe("TestGit");
+})
+
+// @desc   | Create a second profile
+// @route  | POST /api/profile
+// @access | Private
+test('Create a Second Profile for Jane Doe', async () => {
+    const response = await request(app)
+        .post('/api/profile')
+        .set('x-auth-token', userTwoToken)
+        .set('Content-Type', 'application/json')
+        .send({
+            "availability": "Test Test",
+            "githubusername": "JANEDOEGIT"
+        })
+        .expect(200);
+
+    let profile = await Profile.findOne({ user: response.body.user })
+    expect(profile).not.toBeNull();
+
+    expect(response.body.githubusername).toBe("JANEDOEGIT");
 })
 
 
